@@ -29,7 +29,7 @@ axpro = AxPro(
 
 def log(sensor: dict):
 
-    sensor_id = sensor['id']
+    sensor_id = sensor['deviceNo']
     name = sensor['name']
     temperature = sensor['temperature']
     humidity = sensor.get('humidity') # if detectorType == wirelessTemperatureHumidityDetector
