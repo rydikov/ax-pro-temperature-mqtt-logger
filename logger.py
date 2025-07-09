@@ -5,7 +5,6 @@ import time
 import paho.mqtt.publish as publish
 
 from axpro import AxPro
-from datetime import datetime
 from logging import config
 
 
@@ -32,7 +31,7 @@ def log_temperature(name: str, temperature: str, humidity: str = None):
     msgs = [
         (topic_pattern.format(name, 'temperature'), temperature), 
         (topic_pattern.format(name, 'humidity'), humidity),
-        (topic_pattern.format(name, 'last_seen'), datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
+        (topic_pattern.format(name, 'last_seen'), time.time())
     ]
     publish.multiple(
         msgs,
