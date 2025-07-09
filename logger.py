@@ -28,7 +28,7 @@ axpro = AxPro(
 def log_temperature(name: str, temperature: str, humidity: str = None):
     logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
 
-    topic_pattern = "ax-pro/sensers/{}/{}"
+    topic_pattern = "ax-pro/sensors/{}/{}"
     msgs = [
         (topic_pattern.format(name, 'temperature'), temperature), 
         (topic_pattern.format(name, 'humidity'), humidity),
