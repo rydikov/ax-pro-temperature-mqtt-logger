@@ -61,7 +61,7 @@ def check_devices():
         log_temperature(name, temperature, humidity=None)
 
 
-schedule.every(0.1).minutes.do(check_devices)
+schedule.every(1).minutes.do(check_devices)
 
 while True:
     schedule.run_pending()
