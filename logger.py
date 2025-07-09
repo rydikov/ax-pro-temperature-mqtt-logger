@@ -3,10 +3,13 @@ import logging
 import os
 import time
 import paho.mqtt.publish as publish
+import json
 
 from axpro import AxPro
 from logging import config
 
+
+POLL_TIME_IN_MINUTES = float(os.environ.get('POLL_TIME_IN_MINUTES', 1))
 
 config.fileConfig(
     os.path.join(
@@ -24,14 +27,33 @@ axpro = AxPro(
 )
 
 
-def log_temperature(name: str, temperature: str, humidity: str = None):
+def log(sensor: dict):
+
+    sensor_id = sensor['id']
+    name = sensor['name']
+    temperature = sensor['temperature']
+    humidity = sensor.get('humidity') # if detectorType == wirelessTemperatureHumidityDetector
+    charge = sensor['charge']
+    charge_value = sensor.get('chargeValue')
+    signal = sensor['signal']
+    status = sensor['status']
+    meta = json.dumps(sensor)
+
+
+    
     logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
 
     topic_pattern = "ax-pro/sensors/{}/{}"
     msgs = [
-        (topic_pattern.format(name, 'temperature'), temperature), 
-        (topic_pattern.format(name, 'humidity'), humidity),
-        (topic_pattern.format(name, 'last_seen'), time.time())
+        (topic_pattern.format(sensor_id, 'name'), name), 
+        (topic_pattern.format(sensor_id, 'temperature'), temperature), 
+        (topic_pattern.format(sensor_id, 'humidity'), humidity),
+        (topic_pattern.format(sensor_id, 'charge'), charge),
+        (topic_pattern.format(sensor_id, 'charge_value'), charge_value),
+        (topic_pattern.format(sensor_id, 'signal'), signal),
+        (topic_pattern.format(sensor_id, 'status'), status),
+        (topic_pattern.format(sensor_id, 'meta'), meta),
+        (topic_pattern.format(sensor_id, 'last_seen'), time.time())
     ]
     publish.multiple(
         msgs,
@@ -44,23 +66,14 @@ def check_devices():
 
     resp = axpro.zone_status()
     for zone in resp['ZoneList']:
-        name = zone['Zone']['name']
-        temperature = zone['Zone']['temperature']
-        if zone['Zone']['detectorType'] == 'wirelessTemperatureHumidityDetector':
-            humidity = zone['Zone']['humidity']
-        else:
-            humidity = None
-        log_temperature(name, temperature, humidity)
+        log(zone['Zone'])
         
-
     resp = axpro.siren_status()
     for siren in resp['SirenList']:
-        name = siren['Siren']['name']
-        temperature = siren['Siren']['temperature']
-        log_temperature(name, temperature, humidity=None)
+        log(siren['Siren'])
 
 
-schedule.every(1).minutes.do(check_devices)
+schedule.every(POLL_TIME_IN_MINUTES).minutes.do(check_devices)
 
 while True:
     schedule.run_pending()
