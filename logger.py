@@ -27,34 +27,21 @@ axpro = AxPro(
 )
 
 
-def log(sensor: dict):
+def log(result: dict):
 
-    sensor_id = sensor['deviceNo']
-    name = sensor['name']
-    temperature = sensor['temperature']
-    humidity = sensor.get('humidity') # if detectorType == wirelessTemperatureHumidityDetector
-    charge = sensor['charge']
-    charge_value = sensor.get('chargeValue')
-    signal = sensor['signal']
-    status = sensor['status']
-    meta = json.dumps(sensor)
+    # logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
 
+    msgs = []
 
+    for k, v in result.items():
+        
+        name = v['name']
+        temperature = v['temperature']
+        humidity = v.get('humidity')
+        logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
+
+        msgs.append((f'ax-pro/sensors/{k}/meta', json.dumps(v)))
     
-    logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
-
-    topic_pattern = "ax-pro/sensors/{}/{}"
-    msgs = [
-        (topic_pattern.format(sensor_id, 'name'), name), 
-        (topic_pattern.format(sensor_id, 'temperature'), temperature), 
-        (topic_pattern.format(sensor_id, 'humidity'), humidity),
-        (topic_pattern.format(sensor_id, 'charge'), charge),
-        (topic_pattern.format(sensor_id, 'charge_value'), charge_value),
-        (topic_pattern.format(sensor_id, 'signal'), signal),
-        (topic_pattern.format(sensor_id, 'status'), status),
-        (topic_pattern.format(sensor_id, 'meta'), meta),
-        (topic_pattern.format(sensor_id, 'last_seen'), time.time())
-    ]
     publish.multiple(
         msgs,
         hostname=os.environ.get('MQTT_HOSTNAME', 'host.docker.internal'),
@@ -64,13 +51,20 @@ def log(sensor: dict):
 
 def check_devices():
 
+    result = {}
+
     resp = axpro.zone_status()
     for zone in resp['ZoneList']:
-        log(zone['Zone'])
+        item = zone['Zone']
+        result[item['deviceNo']] = item
+        
         
     resp = axpro.siren_status()
     for siren in resp['SirenList']:
-        log(siren['Siren'])
+        item = siren['Siren']
+        result[item['deviceNo']] = item
+
+    log(result)
 
 
 schedule.every(POLL_TIME_IN_MINUTES).minutes.do(check_devices)
