@@ -1,0 +1,12 @@
+services:
+  logger:
+    build: .
+    volumes:
+    - ./logger.py:/app/logger.py
+    env_file: 
+      - path: .env
+        required: false
+    stdin_open: true
+    tty: true
+    restart: always
+    command: python /app/logger.py    
