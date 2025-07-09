@@ -5,7 +5,9 @@ import time
 import paho.mqtt.publish as publish
 
 from axpro import AxPro
+from datetime import datetime
 from logging import config
+
 
 config.fileConfig(
     os.path.join(
@@ -22,19 +24,22 @@ axpro = AxPro(
     os.environ.get('AX_PRO_PASSWORD')
 )
 
+
 def log_temperature(name: str, temperature: str, humidity: str = None):
     logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
 
     topic_pattern = "ax-pro/sensers/{}/{}"
     msgs = [
         (topic_pattern.format(name, 'temperature'), temperature), 
-        (topic_pattern.format(name, 'humidity'), humidity)
+        (topic_pattern.format(name, 'humidity'), humidity),
+        (topic_pattern.format(name, 'last_seen'), datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
     ]
     publish.multiple(
         msgs,
         hostname=os.environ.get('MQTT_HOSTNAME', 'host.docker.internal'),
         port=int(os.environ.get('MQTT_PORT', 1880)),
     )
+
 
 def check_devices():
 
