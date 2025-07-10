@@ -29,8 +29,6 @@ axpro = AxPro(
 
 def log(result: dict):
 
-    # logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
-
     msgs = []
 
     for k, v in result.items():
