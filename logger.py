@@ -54,12 +54,17 @@ def check_devices():
     resp = axpro.zone_status()
     for zone in resp['ZoneList']:
         item = zone['Zone']
+
+        print(item)
+
+        item['last_seen'] = time.time()
         result[item['deviceNo']] = item
         
         
     resp = axpro.siren_status()
     for siren in resp['SirenList']:
         item = siren['Siren']
+        item['last_seen'] = time.time()
         result[item['deviceNo']] = item
 
     log(result)
