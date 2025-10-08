@@ -66,8 +66,6 @@ def check_devices():
     for zone in resp['ZoneList']:
         item = zone['Zone']
 
-        print(item)
-
         item['last_seen'] = time.time()
         result[item['deviceNo']] = item
         

@@ -3,6 +3,7 @@ services:
     build: .
     volumes:
     - ./logger.py:/app/logger.py
+    - ./logs:/app/logs
     env_file: 
       - path: .env
         required: false
