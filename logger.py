@@ -1,15 +1,24 @@
-import schedule
+import json
 import logging
 import os
-import time
 import paho.mqtt.publish as publish
-import json
+import schedule
+import sentry_sdk
+import time
 
 from axpro import AxPro
 from logging import config
 
 
 POLL_TIME_IN_MINUTES = float(os.environ.get('POLL_TIME_IN_MINUTES', 1))
+ENABLE_LOGGING = os.environ.get('ENABLE_LOGGING', False)
+
+if sentry_dsn := os.environ.get('SENTRY_DSN'):
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        send_default_pii=True,
+    )
+
 
 config.fileConfig(
     os.path.join(
@@ -36,7 +45,9 @@ def log(result: dict):
         name = v['name']
         temperature = v['temperature']
         humidity = v.get('humidity')
-        logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
+
+        if ENABLE_LOGGING:
+            logger.info(f'{name}: {temperature}°C', extra={'sensor': name, 'temperature': temperature, 'humidity': humidity})
 
         msgs.append((f'ax-pro/sensors/{k}/meta', json.dumps(v)))
     

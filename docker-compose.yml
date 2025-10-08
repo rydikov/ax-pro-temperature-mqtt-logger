@@ -9,4 +9,6 @@ services:
     stdin_open: true
     tty: true
     restart: always
-    command: python /app/logger.py    
+    command: python /app/logger.py
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
